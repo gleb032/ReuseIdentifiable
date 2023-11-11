@@ -51,3 +51,7 @@ let cell = tableView.dequeueReusableCell(
     for: indexPath
 )
 ```
+
+## License
+
+The project is released under the [MIT License](https://github.com/gleb032/ReuseIdentifiable/blob/master/LICENSE)
