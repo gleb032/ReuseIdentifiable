@@ -1,46 +1,90 @@
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
-
-// Macro implementations build for the host, so the corresponding module is not available when cross-compiling. Cross-compiled tests may still make use of the macro itself in end-to-end tests.
-#if canImport(ReuseIdentifiableMacros)
 import ReuseIdentifiableMacros
 
 let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
+    "ReuseIdentifiable": ReuseIdentifiableMacro.self,
 ]
-#endif
 
-final class ReuseIdentifiableTests: XCTestCase {
-    func testMacro() throws {
-        #if canImport(ReuseIdentifiableMacros)
+final class ReuseIdentifierTests: XCTestCase {
+    func testClassExpanded() {
         assertMacroExpansion(
             """
-            #stringify(a + b)
+            @ReuseIdentifiable
+            class TableViewCell {
+            }
             """,
             expandedSource: """
-            (a + b, "a + b")
+            class TableViewCell {
+
+                static var reuseIdentifier: String {
+                    "TableViewCell"
+                }
+            }
             """,
             macros: testMacros
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
     }
 
-    func testMacroWithStringLiteral() throws {
-        #if canImport(ReuseIdentifiableMacros)
+    func testFinalClassExpanded() {
         assertMacroExpansion(
-            #"""
-            #stringify("Hello, \(name)")
-            """#,
-            expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
-            """#,
+            """
+            @ReuseIdentifiable
+            final class TableViewCell {
+            }
+            """,
+            expandedSource: """
+            final class TableViewCell {
+
+                static var reuseIdentifier: String {
+                    "TableViewCell"
+                }
+            }
+            """,
             macros: testMacros
         )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+    }
+
+    func testStructExpanded() {
+        assertMacroExpansion(
+            """
+            @ReuseIdentifiable
+            struct TableViewCell {
+            }
+            """,
+            expandedSource: """
+            struct TableViewCell {
+
+                static var reuseIdentifier: String {
+                    "TableViewCell"
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
+    func testEnumWrongType() {
+        assertMacroExpansion(
+            """
+            @ReuseIdentifiable
+            enum TableViewCell {
+            }
+            """,
+            expandedSource: """
+
+            enum TableViewCell {
+            }
+            """,
+            diagnostics: [
+                DiagnosticSpec(
+                    message: "@ReuseIdentifier can only be applied to class or struct",
+                    line: 1,
+                    column: 1
+                )
+            ],
+            macros: testMacros
+        )
     }
 }

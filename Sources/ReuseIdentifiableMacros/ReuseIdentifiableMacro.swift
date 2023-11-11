@@ -3,31 +3,54 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-/// Implementation of the `stringify` macro, which takes an expression
-/// of any type and produces a tuple containing the value of that expression
-/// and the source code that produced the value. For example
-///
-///     #stringify(x + y)
-///
-///  will expand to
-///
-///     (x + y, "x + y")
-public struct StringifyMacro: ExpressionMacro {
+internal enum ReuseIdentifiableError: Error, CustomStringConvertible, CustomDebugStringConvertible {
+    case onlyApplicableToClassOrStruct
+
+    var description: String {
+        switch self {
+        case .onlyApplicableToClassOrStruct:
+            "@ReuseIdentifier can only be applied to class or struct"
+        }
+    }
+
+    var debugDescription: String {
+        description
+    }
+}
+
+public struct ReuseIdentifiableMacro: MemberMacro {
     public static func expansion(
-        of node: some FreestandingMacroExpansionSyntax,
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
-    ) -> ExprSyntax {
-        guard let argument = node.argumentList.first?.expression else {
-            fatalError("compiler bug: the macro does not have any arguments")
+    ) throws -> [SwiftSyntax.DeclSyntax] {
+        if let structDecl = declaration.as(StructDeclSyntax.self) {
+            let reuseID = try makeReuseIdentifier(content: structDecl.name.text)
+            return [
+                DeclSyntax(reuseID)
+            ]
         }
 
-        return "(\(argument), \(literal: argument.description))"
+        if let classDecl = declaration.as(ClassDeclSyntax.self) {
+            let reuseID = try makeReuseIdentifier(content: classDecl.name.text)
+            return [
+                DeclSyntax(reuseID)
+            ]
+        }
+
+        throw ReuseIdentifiableError.onlyApplicableToClassOrStruct
+    }
+
+    private static func makeReuseIdentifier(content: String) throws -> VariableDeclSyntax {
+        try VariableDeclSyntax("static var reuseIdentifier: String") {
+            StringLiteralExprSyntax(content: content)
+        }
     }
 }
 
 @main
-struct ReuseIdentifiablePlugin: CompilerPlugin {
+struct ReuseIdentifierPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        StringifyMacro.self,
+        ReuseIdentifiableMacro.self,
     ]
 }
