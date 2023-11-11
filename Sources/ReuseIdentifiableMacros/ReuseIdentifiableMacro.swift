@@ -9,7 +9,7 @@ internal enum ReuseIdentifiableError: Error, CustomStringConvertible, CustomDebu
     var description: String {
         switch self {
         case .onlyApplicableToClassOrStruct:
-            "@ReuseIdentifier can only be applied to class or struct"
+            "@ReuseIdentifiable can only be applied to class or struct"
         }
     }
 
@@ -49,7 +49,7 @@ public struct ReuseIdentifiableMacro: MemberMacro {
 }
 
 @main
-struct ReuseIdentifierPlugin: CompilerPlugin {
+struct ReuseIdentifiablePlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         ReuseIdentifiableMacro.self,
     ]

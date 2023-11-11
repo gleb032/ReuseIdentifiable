@@ -7,7 +7,7 @@ let testMacros: [String: Macro.Type] = [
     "ReuseIdentifiable": ReuseIdentifiableMacro.self,
 ]
 
-final class ReuseIdentifierTests: XCTestCase {
+final class ReuseIdentifiableTests: XCTestCase {
     func testClassExpanded() {
         assertMacroExpansion(
             """
@@ -79,7 +79,7 @@ final class ReuseIdentifierTests: XCTestCase {
             """,
             diagnostics: [
                 DiagnosticSpec(
-                    message: "@ReuseIdentifier can only be applied to class or struct",
+                    message: "@ReuseIdentifiable can only be applied to class or struct",
                     line: 1,
                     column: 1
                 )

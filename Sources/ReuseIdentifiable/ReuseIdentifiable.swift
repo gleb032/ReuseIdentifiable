@@ -1,6 +1,6 @@
 /// A macro that generates a `reuseIdentifier` static String field
 ///
-///     @ReuseIdentifier
+///     @ReuseIdentifiable
 ///     class TableViewCell: UITableViewCell {
 ///         ...
 ///     }
@@ -16,7 +16,7 @@
 ///     )
 ///
 @attached(member, names: named(reuseIdentifier))
-public macro ReuseIdentifier() = #externalMacro(
+public macro ReuseIdentifiable() = #externalMacro(
     module: "ReuseIdentifiableMacros",
     type: "ReuseIdentifiableMacro"
 )
